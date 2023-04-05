@@ -1,0 +1,6 @@
+/docker/storage
+vendor
+storage
+.env
+public/build
+node_modules
