@@ -13,6 +13,8 @@ class Config
     public function get(string $name, mixed $default = null): mixed
     {
         $path  = explode('.', $name);
+        
+        
         $value = $this->config[array_shift($path)] ?? null;
 
         if ($value === null) {
@@ -25,8 +27,9 @@ class Config
             }
 
             $value = $value[$key];
+            
         }
-
+        
         return $value;
     }
 }

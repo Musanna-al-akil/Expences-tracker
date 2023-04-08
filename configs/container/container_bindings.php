@@ -25,6 +25,10 @@ use Symfony\WebpackEncoreBundle\Twig\EntryFilesTwigExtension;
 use Twig\Extra\Intl\IntlExtension;
 
 use function DI\create;
+use App\Contracts\SessionInterface;
+use App\Session;
+use App\DataObjects\SessionConfig;
+use App\Enum\SameSite;
 
 return [
     App::class                          => function (ContainerInterface $container) {
@@ -73,7 +77,13 @@ return [
     ),
     ResponseFactoryInterface::class     => fn(App $app) => $app->getResponseFactory(),
     AuthInterface::class                => fn(ContainerInterface $container) => $container->get(Auth::class),
-    UserProviderServiceInterface::class => fn(ContainerInterface $container) => $container->get(
-        UserProviderService::class
-    ),
+    UserProviderServiceInterface::class => fn(ContainerInterface $container) => $container->get(UserProviderService::class),
+    SessionInterface::class => fn(Config $config)=> new Session(
+            new SessionConfig(
+                $config->get('session.name',''),
+                $config->get('session.secure', false),
+                $config->get('session.httpOnly',false),
+                SameSite::from($config->get('session.samesite', 'lux')),
+            )
+        ),
 ];
