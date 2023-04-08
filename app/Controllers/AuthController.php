@@ -4,8 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Controllers;
 
+use App\Contracts\AuthInterface;
 use App\Entity\User;
-use App\Exceptions\ValidationException;
+use App\Exception\ValidationException;
 use Doctrine\ORM\EntityManager;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -14,8 +15,11 @@ use Valitron\Validator;
 
 class AuthController
 {
-    public function __construct(private readonly Twig $twig, private readonly EntityManager $entityManager)
-    {
+    public function __construct(
+        private readonly Twig $twig,
+        private readonly EntityManager $entityManager,
+        private readonly AuthInterface $auth
+    ) {
     }
 
     public function loginView(Request $request, Response $response): Response
@@ -44,8 +48,7 @@ class AuthController
             'email'
         )->message('User with the given email address already exists');
 
-        if ($v->validate()) {
-        } else {
+        if (! $v->validate()) {
             throw new ValidationException($v->errors());
         }
 
@@ -58,33 +61,29 @@ class AuthController
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        return $response->withHeader('Location','/')->withStatus(302);;
+        return $response;
     }
 
-    public function login(Request $request, Response $response): Response
+    public function logIn(Request $request, Response $response): Response
     {
-        //1.validate the request data
         $data = $request->getParsedBody();
 
         $v = new Validator($data);
-        $v->rule('required', [ 'email','password']);
+
+        $v->rule('required', ['email', 'password']);
         $v->rule('email', 'email');
 
-        //2.check user ther credentials
-
-        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email'=> $data['email']]);
-
-        if(! $user || ! password_verify($data['password'], $user->getPassword())){
-            throw new ValidationException(['password' => ['you have entered an invalid username or password']]);
+        if(! $this->auth->attemptLogin($data)) {
+            throw new ValidationException(['password' => ['You have entered an invalid username or password']]);
         }
-        //save user id in session
-        session_regenerate_id();
-        $_SESSION['user'] = $user->getId(); 
 
         return $response->withHeader('Location', '/')->withStatus(302);
     }
-    public function logout(Request $request, Response $response): Response
+
+    public function logOut(Request $request, Response $response): Response
     {
-        return $response->withHeader('Locataion','/')->withStatus(302);
+        $this->auth->logOut();
+
+        return $response->withHeader('Location', '/')->withStatus(302);
     }
 }
