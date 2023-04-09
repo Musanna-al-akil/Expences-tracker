@@ -29,6 +29,8 @@ use App\Contracts\SessionInterface;
 use App\Session;
 use App\DataObjects\SessionConfig;
 use App\Enum\SameSite;
+use App\RequestValidators\RequestValidatorFactory;
+use App\Contracts\RequestValidatorFactoryInterface;
 
 return [
     App::class                          => function (ContainerInterface $container) {
@@ -87,4 +89,5 @@ return [
                 $config->get('session.flashName','flash'),
             )
         ),
+    RequestValidatorFactoryInterface::class => fn(ContainerInterface $container) => $container->get(RequestValidatorFactory::class),
 ];
