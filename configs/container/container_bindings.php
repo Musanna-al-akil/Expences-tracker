@@ -84,6 +84,7 @@ return [
                 $config->get('session.secure', false),
                 $config->get('session.httpOnly',false),
                 SameSite::from($config->get('session.samesite', 'lux')),
+                $config->get('session.flashName','flash'),
             )
         ),
 ];

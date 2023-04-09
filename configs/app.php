@@ -31,6 +31,7 @@ return [
         'name'      =>$appSnakeName . '_session',
         'secure'    => true,
         'httpOnly'  => true,
-        'samesite'  => 'lax'
+        'samesite'  => 'lax',
+        'flash'     => 'flash'
     ]
 ];

@@ -14,8 +14,13 @@ interface SessionInterface
 
     public function get($key, mixed $default =  null): mixed;
 
-    public function put(string $key, int $getId): void;
+    public function put(string $key, string|int $getId): void;
 
     public function regenerate(): bool;
+
     public function forget(string $key): void;
+
+    public function flash(string $key, array $messages): void;
+
+    public function getflash(string $key): array;
 }

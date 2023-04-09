@@ -58,7 +58,7 @@ class Session implements SessionInterface
         return array_key_exists($key, $_SESSION);
     }
 
-    public function put(string $key, int $value): void
+    public function put(string $key, string|int $value): void
     {
         $_SESSION[$key] = $value;
     }
@@ -72,4 +72,18 @@ class Session implements SessionInterface
        unset($_SESSION[$key]);
     }
     
+    public function flash(string $key, array $messages): void
+    {
+        $_SESSION[$this->options->flashName][$key] = $messages;
+    }
+    public function getflash(string $key): array
+    {
+       $messages = $_SESSION[$this->options->flashName][$key] ?? [];
+
+       unset($_SESSION[$this->options->flashName][$key]);
+
+       return $messages; 
+    }
+
+ 
 }
