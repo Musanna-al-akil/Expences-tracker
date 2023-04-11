@@ -32,6 +32,7 @@ use App\Enum\SameSite;
 use App\RequestValidators\RequestValidatorFactory;
 use App\Contracts\RequestValidatorFactoryInterface;
 use Slim\Csrf\Guard;
+use App\Csrf;
 
 return [
     App::class                          => function (ContainerInterface $container) {
@@ -91,5 +92,5 @@ return [
             )
         ),
     RequestValidatorFactoryInterface::class => fn(ContainerInterface $container) => $container->get(RequestValidatorFactory::class),
-    'csrf' => fn(ResponseFactoryInterface $responseFactoryInterface) => new Guard($responseFactoryInterface, persistentTokenMode: true),
+    'csrf' => fn(ResponseFactoryInterface $responseFactoryInterface, Csrf $csrf) => new Guard($responseFactoryInterface, persistentTokenMode: true, failureHandler: $csrf->failureHandler()),
 ];
