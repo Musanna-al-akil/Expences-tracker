@@ -6,14 +6,10 @@ namespace App\Services;
 use App\Contracts\SessionInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-
-
 class RequestService
 {
-
     public function __construct(private readonly SessionInterface $session)
     {
-
     }
     public function getReferer(ServerRequestInterface $request): string
     {
@@ -30,5 +26,10 @@ class RequestService
         }
 
         return $referer;
+    }
+
+    public function isXhr(ServerRequestInterface $request): bool
+    {
+        return $request->getHeaderLine('X-Requested-With') === 'XMLHttpRequest';
     }
 }
