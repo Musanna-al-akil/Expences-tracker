@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Controllers;
 
 use App\Contracts\RequestValidatorFactoryInterface;
+use App\Entity\Category;
 use App\RequestValidators\CreateCategoryRequestValidator;
 use App\RequestValidators\UpdateCategoryRequestValidator;
 use App\responseFormatter;
@@ -25,11 +26,7 @@ class CategoriesController
 
     public function index(Request $request, Response $response): Response
     {
-        return $this->twig->render($response, 'categories/index.twig',
-            [
-                'categories' => $this->categoryService->getAll(),
-            ]
-        );
+        return $this->twig->render($response, 'categories/index.twig');
     }
 
     public function store(Request $request, Response $response): Response
@@ -76,5 +73,32 @@ class CategoriesController
         $this->categoryService->update($category, $data['name']);
 
         return $response;
+    }
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params = $request->getQueryParams();
+
+        $categories =$this->categoryService->getPaginatedCategories((int) $params['start'],(int) $params['length']); 
+
+        $transformer = function (Category $category) {
+            return [
+                'id'        =>$category->getId(),
+                'name'      =>$category->getName(),
+                'createdAt' =>$category->getCreatedAt()->format('m/d/y g:i A'),
+                'updatedAt' =>$category->getUpdatedAt()->format('m/d/y g:i A'),
+            ];
+        };
+
+        $totalCategories = count($categories);
+        return $this->responseFormatter->asJson(
+            $response,
+            [
+                'data'          =>array_map($transformer, (array)$categories->getIterator()),
+                'draw'          =>(int) $params['draw'],
+                'recordsTotal'  => $totalCategories,
+                'recordsFiltered'=>  $totalCategories
+            ]
+            );
     }
 }
