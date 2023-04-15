@@ -21,13 +21,23 @@ class CategoryService
         return $this->update($category, $name);
     }
 
-    public function getPaginatedCategories(int $start, int $length) : Paginator
+    public function getPaginatedCategories(int $start, int $length, string $orderBy, string $orderDir, string $search) : Paginator
     {
-        $query = $this->entityManager->getRepository(Category::class)
+        $orderBy = in_array($orderBy, ['name', 'createdAt', 'updatedAt']) ? $orderBy : 'updatedAt';
+        $orderDir = strtolower($orderDir) === 'asc' ? 'asc' : 'desc';
+
+        $query = $this->entityManager
+                    ->getRepository(Category::class)
                     ->createQueryBuilder('c')
                     ->setFirstResult($start)
-                    ->setMaxResults($length);
+                    ->setMaxResults($length)
+                    ->orderBy('c.' . $orderBy, $orderDir);
 
+        if(! empty($search)) {
+            //$search = str_replace(['%','_'],['\%', '\_'], $search);
+            $query->where('c.name LIKE :name')->setParameter('name','%' .addcslashes($search,'%_') . '%');
+        }
+       
         return new Paginator($query);
     }
 
