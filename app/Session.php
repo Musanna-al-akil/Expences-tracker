@@ -84,6 +84,4 @@ class Session implements SessionInterface
 
        return $messages; 
     }
-
- 
 }

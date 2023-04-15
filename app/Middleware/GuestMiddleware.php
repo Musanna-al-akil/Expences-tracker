@@ -13,8 +13,10 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class GuestMiddleware implements MiddlewareInterface
 {
-    public function __construct(private readonly ResponseFactoryInterface $responseFactory, private readonly SessionInterface $session)
-    {
+    public function __construct(
+            private readonly ResponseFactoryInterface $responseFactory, 
+            private readonly SessionInterface $session
+        ){
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface

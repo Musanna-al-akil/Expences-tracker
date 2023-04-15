@@ -17,8 +17,8 @@ class AuthMiddleware implements MiddlewareInterface
     public function __construct(
             private readonly ResponseFactoryInterface $responseFactory, 
             private readonly AuthInterface $auth,
-            private readonly Twig $twig)
-    {
+            private readonly Twig $twig
+        ){
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface

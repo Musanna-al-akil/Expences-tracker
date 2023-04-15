@@ -94,11 +94,11 @@ class CategoriesController
         return $this->responseFormatter->asJson(
             $response,
             [
-                'data'          =>array_map($transformer, (array)$categories->getIterator()),
+                'data'          =>array_map($transformer, (array) $categories->getIterator()),
                 'draw'          =>(int) $params['draw'],
                 'recordsTotal'  => $totalCategories,
                 'recordsFiltered'=>  $totalCategories
             ]
-            );
+        );
     }
 }

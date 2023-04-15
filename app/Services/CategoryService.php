@@ -16,11 +16,9 @@ class CategoryService
     public function create(string $name, User $user): Category
     {   
         $category= new Category();
-
         $category->setUser($user);
 
         return $this->update($category, $name);
-
     }
 
     public function getPaginatedCategories(int $start, int $length) : Paginator
@@ -38,7 +36,6 @@ class CategoryService
         $category = $this->entityManager->find(Category::class, $id);
 
         $this->entityManager->remove($category);
-
         $this->entityManager->flush();
     }
 

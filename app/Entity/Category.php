@@ -88,7 +88,6 @@ class Category
     public function setUser(User $user): Category
     {
         $user->addCategory($this);
-
         $this->user = $user;
 
         return $this;

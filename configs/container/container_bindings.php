@@ -23,8 +23,6 @@ use Symfony\WebpackEncoreBundle\Asset\EntrypointLookup;
 use Symfony\WebpackEncoreBundle\Asset\TagRenderer;
 use Symfony\WebpackEncoreBundle\Twig\EntryFilesTwigExtension;
 use Twig\Extra\Intl\IntlExtension;
-
-use function DI\create;
 use App\Contracts\SessionInterface;
 use App\Session;
 use App\DataObjects\SessionConfig;
@@ -33,6 +31,8 @@ use App\RequestValidators\RequestValidatorFactory;
 use App\Contracts\RequestValidatorFactoryInterface;
 use Slim\Csrf\Guard;
 use App\Csrf;
+
+use function DI\create;
 
 return [
     App::class                          => function (ContainerInterface $container) {
@@ -44,7 +44,6 @@ return [
         $app = AppFactory::create();
 
         $router($app);
-
         $addMiddlewares($app);
 
         return $app;

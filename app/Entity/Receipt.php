@@ -63,7 +63,6 @@ class Receipt
     public function setTransaction(Transaction $transaction): Receipt
     {
         $transaction->addReceipt($this);
-
         $this->transaction = $transaction;
 
         return $this;
