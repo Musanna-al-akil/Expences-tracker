@@ -10,7 +10,7 @@ class TransactionData
         public readonly string $description,
         public readonly float $amount,
         public readonly \DateTime $date,
-        public readonly Category $category
+        public readonly ?Category $category
     ){ 
     }
 }

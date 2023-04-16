@@ -55,6 +55,10 @@ class CategoryService
         return $this->entityManager->find(Category::class, $id);
     }
 
+    public function findByName(string $name): ?Category
+    {
+        return $this->entityManager->getRepository(Category::class)->findBy(['name' => $name])[0] ?? null;
+    }
     public function update(Category $category, string $name): Category
     {
         $category->setName($name);

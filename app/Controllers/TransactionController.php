@@ -113,7 +113,7 @@ class TransactionController
                 'id'            =>$transaction->getId(),
                 'description'   =>$transaction->getDescription(),
                 'amount'        =>$transaction->getAmount(),
-                'category'      =>$transaction->getCategory()->getName(),
+                'category'      =>$transaction->getCategory()?->getName(),
                 'date'          =>$transaction->getDate()->format('m/d/y g:i A'),
                 'receipts'      =>$transaction->getReceipts()->map(fn(Receipt $receipt) => [
                     'name'  => $receipt->getFilename(),

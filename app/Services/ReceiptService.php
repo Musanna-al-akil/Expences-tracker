@@ -32,4 +32,11 @@ class ReceiptService
     {
         return $this->entityManager->find(Receipt::class, $id);
     }
+    public function delete(int $id)
+    {
+        $transaction = $this->entityManager->find(Receipt::class, $id);
+
+        $this->entityManager->remove($transaction);
+        $this->entityManager->flush();
+    }
 }
