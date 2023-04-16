@@ -33,6 +33,8 @@ use Slim\Csrf\Guard;
 use App\Csrf;
 
 use function DI\create;
+use League\Flysystem\Filesystem;
+use App\Enum\StorageDriver;
 
 return [
     App::class                          => function (ContainerInterface $container) {
@@ -92,4 +94,10 @@ return [
         ),
     RequestValidatorFactoryInterface::class => fn(ContainerInterface $container) => $container->get(RequestValidatorFactory::class),
     'csrf' => fn(ResponseFactoryInterface $responseFactoryInterface, Csrf $csrf) => new Guard($responseFactoryInterface, persistentTokenMode: true, failureHandler: $csrf->failureHandler()),
+    Filesystem::class => function(Config $config){
+        $adapter = match($config->get('storage.driver')) {
+            StorageDriver::Local => new League\Flysystem\Local\LocalFilesystemAdapter(STORAGE_PATH),
+        };
+        return new League\Flysystem\Filesystem($adapter);
+    }
 ];

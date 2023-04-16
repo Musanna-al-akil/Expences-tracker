@@ -6,11 +6,8 @@ namespace App\Controllers;
 
 use App\Contracts\RequestValidatorFactoryInterface;
 use App\DataObjects\TransactionData;
-use App\Entity\Category;
 use App\Entity\Transaction;
-use App\RequestValidators\CreateCategoryRequestValidator;
 use App\RequestValidators\TransactionRequestValidator;
-use App\RequestValidators\UpdateCategoryRequestValidator;
 use App\responseFormatter;
 use App\Services\CategoryService;
 use App\Services\RequestService;
