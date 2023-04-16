@@ -35,6 +35,10 @@ use App\Csrf;
 use function DI\create;
 use League\Flysystem\Filesystem;
 use App\Enum\StorageDriver;
+use Doctrine\DBAL\DriverManager;
+use Clockwork\Clockwork;
+use Clockwork\Storage\FileStorage;
+use Clockwork\DataSource\DoctrineDataSource;
 
 return [
     App::class                          => function (ContainerInterface $container) {
@@ -51,13 +55,16 @@ return [
         return $app;
     },
     Config::class                       => create(Config::class)->constructor(require CONFIG_PATH . '/app.php'),
-    EntityManager::class                => fn(Config $config) => EntityManager::create(
-        $config->get('doctrine.connection'),
-        ORMSetup::createAttributeMetadataConfiguration(
+    EntityManager::class                => function(Config $config) { 
+        $ormConfig = ORMSetup::createAttributeMetadataConfiguration(
             $config->get('doctrine.entity_dir'),
             $config->get('doctrine.dev_mode')
-        )
-    ),
+        );
+        return new EntityManager(
+            DriverManager::getConnection($config->get('doctrine.connection'), $ormConfig),
+            $ormConfig
+        );
+    },
     Twig::class                         => function (Config $config, ContainerInterface $container) {
         $twig = Twig::create(VIEW_PATH, [
             'cache'       => STORAGE_PATH . '/cache/templates',
@@ -99,5 +106,12 @@ return [
             StorageDriver::Local => new League\Flysystem\Local\LocalFilesystemAdapter(STORAGE_PATH),
         };
         return new League\Flysystem\Filesystem($adapter);
+    },
+    Clockwork::class => function(EntityManager $entityManager){
+        $clockwork = new Clockwork();
+        $clockwork->storage(new FileStorage(STORAGE_PATH . '/clockwork'));
+        $clockwork->addDataSource(new DoctrineDataSource($entityManager));
+
+        return $clockwork;
     }
 ];
