@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace App;
+
 use Psr\Http\Message\ResponseInterface;
 
 class responseFormatter
@@ -13,5 +14,18 @@ class responseFormatter
         $response->getBody()->write(json_encode($data, $flags));
 
         return $response;
+    }
+
+    public function asDataTable(ResponseInterface $response, array $data, int $draw, int $total): ResponseInterface
+    {
+        return  $this->asJson(
+            $response,
+            [
+                'data'          => $data,
+                'draw'          => $draw,
+                'recordsTotal'  => $total,
+                'recordsFiltered'=>  $total
+            ]
+            );
     }
 }

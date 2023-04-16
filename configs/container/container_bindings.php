@@ -23,8 +23,6 @@ use Symfony\WebpackEncoreBundle\Asset\EntrypointLookup;
 use Symfony\WebpackEncoreBundle\Asset\TagRenderer;
 use Symfony\WebpackEncoreBundle\Twig\EntryFilesTwigExtension;
 use Twig\Extra\Intl\IntlExtension;
-
-use function DI\create;
 use App\Contracts\SessionInterface;
 use App\Session;
 use App\DataObjects\SessionConfig;
@@ -33,6 +31,14 @@ use App\RequestValidators\RequestValidatorFactory;
 use App\Contracts\RequestValidatorFactoryInterface;
 use Slim\Csrf\Guard;
 use App\Csrf;
+
+use function DI\create;
+use League\Flysystem\Filesystem;
+use App\Enum\StorageDriver;
+use Doctrine\DBAL\DriverManager;
+use Clockwork\Clockwork;
+use Clockwork\Storage\FileStorage;
+use Clockwork\DataSource\DoctrineDataSource;
 
 return [
     App::class                          => function (ContainerInterface $container) {
@@ -44,19 +50,21 @@ return [
         $app = AppFactory::create();
 
         $router($app);
-
         $addMiddlewares($app);
 
         return $app;
     },
     Config::class                       => create(Config::class)->constructor(require CONFIG_PATH . '/app.php'),
-    EntityManager::class                => fn(Config $config) => EntityManager::create(
-        $config->get('doctrine.connection'),
-        ORMSetup::createAttributeMetadataConfiguration(
+    EntityManager::class                => function(Config $config) { 
+        $ormConfig = ORMSetup::createAttributeMetadataConfiguration(
             $config->get('doctrine.entity_dir'),
             $config->get('doctrine.dev_mode')
-        )
-    ),
+        );
+        return new EntityManager(
+            DriverManager::getConnection($config->get('doctrine.connection'), $ormConfig),
+            $ormConfig
+        );
+    },
     Twig::class                         => function (Config $config, ContainerInterface $container) {
         $twig = Twig::create(VIEW_PATH, [
             'cache'       => STORAGE_PATH . '/cache/templates',
@@ -93,4 +101,17 @@ return [
         ),
     RequestValidatorFactoryInterface::class => fn(ContainerInterface $container) => $container->get(RequestValidatorFactory::class),
     'csrf' => fn(ResponseFactoryInterface $responseFactoryInterface, Csrf $csrf) => new Guard($responseFactoryInterface, persistentTokenMode: true, failureHandler: $csrf->failureHandler()),
+    Filesystem::class => function(Config $config){
+        $adapter = match($config->get('storage.driver')) {
+            StorageDriver::Local => new League\Flysystem\Local\LocalFilesystemAdapter(STORAGE_PATH),
+        };
+        return new League\Flysystem\Filesystem($adapter);
+    },
+    Clockwork::class => function(EntityManager $entityManager){
+        $clockwork = new Clockwork();
+        $clockwork->storage(new FileStorage(STORAGE_PATH . '/clockwork'));
+        $clockwork->addDataSource(new DoctrineDataSource($entityManager));
+
+        return $clockwork;
+    }
 ];

@@ -13,9 +13,9 @@ use Slim\Views\Twig;
 
 class CsrfFieldMiddleware implements MiddlewareInterface
 {
-  
-    public function __construct(private readonly Twig $twig ,private readonly ContainerInterface $container)
-    {
+    public function __construct(private readonly Twig $twig,
+            private readonly ContainerInterface $container
+        ){
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -37,8 +37,7 @@ class CsrfFieldMiddleware implements MiddlewareInterface
                                                     'fields' => <<<CSRF_Fields
                                     <input type="hidden" name="$csrfNameKey" value="$csrfName">
                                     <input type="hidden" name="$csrfValueKey" value="$csrfValue">
-CSRF_Fields
-                                                ]);
+CSRF_Fields]);
 
         return $handler->handle($request);
     }

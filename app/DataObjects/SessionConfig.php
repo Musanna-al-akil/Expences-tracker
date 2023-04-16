@@ -12,7 +12,6 @@ class SessionConfig
         public readonly bool $httponly,
         public readonly SameSite $sameSite,
         public readonly string $flashName,
-    )
-    { 
+    ){ 
     }
 }

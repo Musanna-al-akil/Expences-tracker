@@ -14,7 +14,6 @@ class Config
     {
         $path  = explode('.', $name);
         
-        
         $value = $this->config[array_shift($path)] ?? null;
 
         if ($value === null) {
@@ -26,8 +25,7 @@ class Config
                 return $default;
             }
 
-            $value = $value[$key];
-            
+            $value = $value[$key];  
         }
         
         return $value;

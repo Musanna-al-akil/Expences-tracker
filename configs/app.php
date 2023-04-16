@@ -3,6 +3,7 @@
 declare(strict_types = 1);
 
 use App\Enum\AppEnvironment;
+use App\Enum\StorageDriver;
 
 $appEnv = $_ENV['APP_ENV'] ?? AppEnvironment::Production->value;
 
@@ -28,10 +29,13 @@ return [
         ],
     ],
     'session' => [
-        'name'      =>$appSnakeName . '_session',
+        'name'      => $appSnakeName . '_session',
         'secure'    => true,
         'httpOnly'  => true,
         'samesite'  => 'lax',
         'flash'     => 'flash'
+    ],
+    'storage' => [
+        'driver'    => StorageDriver::Local,
     ]
 ];
