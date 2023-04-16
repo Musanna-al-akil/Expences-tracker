@@ -12,7 +12,7 @@ class ReceiptService
     public function __construct(private readonly EntityManager $entityManager)
     {
     }
-    public function create($transaction, string $fileName, string $storageFilename): Receipt
+    public function create($transaction, string $fileName, string $storageFilename, string $mediaType): Receipt
     {   
         $receipt = new Receipt();
 
@@ -20,10 +20,16 @@ class ReceiptService
         $receipt->setFilename($fileName);
         $receipt->setStorageFilename($storageFilename);
         $receipt->setCreatedAt(new \DateTime());
+        $receipt->setMediaType($mediaType);
 
         $this->entityManager->persist($receipt);
         $this->entityManager->flush();
 
         return $receipt;
+    }
+
+    public function getById(int $id): ?Receipt
+    {
+        return $this->entityManager->find(Receipt::class, $id);
     }
 }
