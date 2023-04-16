@@ -7,8 +7,9 @@ use App\Controllers\HomeController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\GuestMiddleware;
 use Slim\App;
-use App\Controllers\CategoriesController;
 use Slim\Routing\RouteCollectorProxy;
+use App\Controllers\CategoryController;
+use App\Controllers\TransactionController;
 
 return function (App $app) {
     $app->get('/', [HomeController::class, 'index'])->add(AuthMiddleware::class);
@@ -23,11 +24,20 @@ return function (App $app) {
     $app->post('/logout', [AuthController::class, 'logOut'])->add(AuthMiddleware::class);
 
     $app->group('/categories', function (RouteCollectorProxy $categories){
-        $categories->get('', [CategoriesController::class, 'index']);
-        $categories->get('/load', [CategoriesController::class, 'load']);
-        $categories->post('', [CategoriesController::class, 'store']);
-        $categories->delete('/{id}', [CategoriesController::class, 'delete']);
-        $categories->get('/{id}', [CategoriesController::class, 'get']);
-        $categories->post('/{id}', [CategoriesController::class, 'update']);
+        $categories->get('', [CategoryController::class, 'index']);
+        $categories->get('/load', [CategoryController::class, 'load']);
+        $categories->post('', [CategoryController::class, 'store']);
+        $categories->delete('/{id}', [CategoryController::class, 'delete']);
+        $categories->get('/{id}', [CategoryController::class, 'get']);
+        $categories->post('/{id}', [CategoryController::class, 'update']);
+    })->add(AuthMiddleware::class);
+
+    $app->group('/transactions', function (RouteCollectorProxy $transactions){
+        $transactions->get('', [TransactionController::class, 'index']);
+        $transactions->get('/load', [TransactionController::class, 'load']);
+        $transactions->post('', [TransactionController::class, 'store']);
+        $transactions->delete('/{id:[0-9]+}', [TransactionController::class, 'delete']);
+        $transactions->get('/{id:[0-9]+}', [TransactionController::class, 'get']);
+        $transactions->post('/{id:[0-9]+}', [TransactionController::class, 'update']);
     })->add(AuthMiddleware::class);
 };

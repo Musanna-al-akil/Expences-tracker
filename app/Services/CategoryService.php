@@ -32,7 +32,7 @@ class CategoryService
                     ->createQueryBuilder('c')
                     ->setFirstResult($params->start)
                     ->setMaxResults($params->length)
-                    ->orderBy('c.' . $params->orderBy, $params->orderDir);
+                    ->orderBy('c.' . $orderBy, $orderDir);
 
         if(! empty($params->search)) {
             //$search = str_replace(['%','_'],['\%', '\_'], $search);
@@ -63,5 +63,13 @@ class CategoryService
         $this->entityManager->flush();
 
         return $category;
+    }
+
+    public function getCategoryNames(): array
+    {
+        return $this->entityManager->getRepository(Category::class)->createQueryBuilder('c')
+                ->select('c.id','c.name')
+                ->getQuery()
+                ->getArrayResult();
     }
 }
