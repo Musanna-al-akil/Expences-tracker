@@ -74,7 +74,6 @@ class TransactionService
         $transaction->setCategory($transactionData->category);
 
         $this->entityManager->persist($transaction);
-        $this->entityManager->flush();
 
         return $transaction;
     }
