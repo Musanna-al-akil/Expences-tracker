@@ -26,6 +26,9 @@ class Transaction
     #[Id, Column(options: ['unsigned' => true]), GeneratedValue]
     private int $id;
 
+    #[Column(name: 'was_reviewed', options: ['default'=> 0])]
+    private bool $wasReviewed;
+
     #[Column]
     private string $description;
 
@@ -128,4 +131,13 @@ class Transaction
 
         return $this;
     }
+
+	public function wasReviewed(): bool {
+		return $this->wasReviewed;
+	}
+
+	public function setReviewed(bool $wasReviewed): self {
+		$this->wasReviewed = $wasReviewed;
+		return $this;
+	}
 }
