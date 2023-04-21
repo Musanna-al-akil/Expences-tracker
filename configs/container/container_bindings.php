@@ -42,6 +42,7 @@ use Clockwork\DataSource\DoctrineDataSource;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Contracts\EntityManagerServiceInterface;
 use App\Services\EntityManagerService;
+use App\RouteEntityBindingStrategy;
 
 return [
     App::class                      => function (ContainerInterface $container) {
@@ -51,6 +52,8 @@ return [
         $router         = require CONFIG_PATH . '/routes/web.php';
 
         $app = AppFactory::create();
+
+        $app->getRouteCollector()->setDefaultInvocationStrategy(new RouteEntityBindingStrategy($container->get(EntityManagerServiceInterface::class), $app->getResponseFactory()));
 
         $router($app);
         $addMiddlewares($app);
