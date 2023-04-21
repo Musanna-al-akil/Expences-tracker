@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Controllers;
 
+use App\Contracts\EntityManagerServiceInterface;
 use App\Contracts\RequestValidatorFactoryInterface;
 use App\RequestValidators\UploadReceiptRequestValidator;
 use App\Services\ReceiptService;
@@ -20,7 +21,8 @@ class ReceiptController
         private readonly Filesystem $filesystem,
         private readonly RequestValidatorFactoryInterface $requestValidatorFactory,
         private readonly ReceiptService $receiptService,
-        private readonly TransactionService $transactionService
+        private readonly TransactionService $transactionService,
+        private readonly EntityManagerServiceInterface $entityManagerService
     ) {
     } 
 
@@ -40,9 +42,10 @@ class ReceiptController
         $randomFilename = bin2hex((random_bytes(25)));
 
         $this->filesystem->write('receipts/' . $randomFilename, $file->getStream()->getContents());
-        $this->receiptService->create($transaction, $fileName, $randomFilename,$file->getClientMediaType());
-        $this->receiptService->flush();
+        $receipt = $this->receiptService->create($transaction, $fileName, $randomFilename,$file->getClientMediaType());
         
+        $this->entityManagerService->sync($receipt);
+
         return $response;
     }
 
@@ -91,9 +94,7 @@ class ReceiptController
         }
         $this->filesystem->delete('receipts/' . $receipt->getStorageFilename());
 
-        $this->receiptService->delete($receiptId);
-        $this->receiptService->flush();
-
+        $this->entityManagerService->delete($receipt, true);
 
         return $response;
     }
