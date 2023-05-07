@@ -19,6 +19,7 @@
         }
     ],
     "require": {
+        "php": "^8.2",
         "ext-pdo": "*",
         "doctrine/orm": "^2.14",
         "doctrine/dbal": "^3.6",

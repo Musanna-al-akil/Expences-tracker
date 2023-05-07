@@ -49,7 +49,7 @@ class ReceiptController
     public function download(Response $response, Transaction $transaction, Receipt $receipt): Response
     {
         if($receipt->getTransaction()->getId() !== $transaction->getId()) {
-            return $response->withStatus(404);
+            return $response->withStatus(401);
         }
 
         $file = $this->filesystem->readStream('receipts/'. $receipt->getStorageFilename());

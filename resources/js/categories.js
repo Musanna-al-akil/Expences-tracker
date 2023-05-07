@@ -43,7 +43,7 @@ window.addEventListener('DOMContentLoaded', function () {
             const categoryId = deleteBtn.getAttribute('data-id')
 
             if (confirm('Are you sure you want to delete this category?')) {
-                del(`/categories/${ categoryId }`).then(() => {
+                del(`/categories/${ categoryId }`).then(response => {
                     if(response.ok){
                         table.draw()
                     }
@@ -61,6 +61,7 @@ window.addEventListener('DOMContentLoaded', function () {
             editCategoryModal._element
         ).then(response => {
             if(response.ok) {
+            table.draw()
             editCategoryModal.hide()
             }
         })
