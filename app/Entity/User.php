@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Entity;
 
+use App\Contracts\OwnableInterface;
 use App\Contracts\UserInterface;
 use App\Entity\Traits\HasTimeStamps;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -33,6 +34,9 @@ class User implements UserInterface
 
     #[Column]
     private string $password;
+
+    #[Column(name: 'verified_at', nullable:true)]
+    private ?\DateTime $verifiedAt;
 
     #[OneToMany(mappedBy: 'user', targetEntity: Category::class)]
     private Collection $categories;
@@ -109,5 +113,26 @@ class User implements UserInterface
         $this->transactions->add($transaction);
 
         return $this;
+    }
+
+    public function canManage(OwnableInterface $entity): bool
+    {
+        return $this->getId() === $entity->getUser()->getId();
+    }
+
+	public function getVerifiedAt(): ?\DateTime {
+		return $this->verifiedAt;
+	}
+
+	public function setVerifiedAt(\DateTime $verifiedAt): static {
+		$this->verifiedAt = $verifiedAt;
+		return $this;
+	}
+
+    public function hasTwoFactorAuthEnabled():bool
+    {
+        //TODO:
+
+        return true;
     }
 }

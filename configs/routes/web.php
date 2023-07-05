@@ -6,15 +6,45 @@ use App\Controllers\AuthController;
 use App\Controllers\HomeController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\GuestMiddleware;
+use App\Middleware\VerifyEmailMiddleware;
 use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
 use App\Controllers\CategoryController;
 use App\Controllers\TransactionController;
 use App\Controllers\ReceiptController;
 use App\Controllers\TransactionImporterController;
+use App\Controllers\VerifyController;
+use App\Middleware\ValidateSignatureMiddleware;
 
 return function (App $app) {
-    $app->get('/', [HomeController::class, 'index'])->add(AuthMiddleware::class);
+
+    $app->group('',function(RouteCollectorProxy $group){
+        $group->get('/', [HomeController::class, 'index']);
+
+        $group->group('/categories', function (RouteCollectorProxy $categories){
+            $categories->get('', [CategoryController::class, 'index']);
+            $categories->get('/load', [CategoryController::class, 'load']);
+            $categories->post('', [CategoryController::class, 'store']);
+            $categories->delete('/{category}', [CategoryController::class, 'delete']);
+            $categories->get('/{category}', [CategoryController::class, 'get']);
+            $categories->post('/{category}', [CategoryController::class, 'update']);
+        });
+
+        $group->group('/transactions', function (RouteCollectorProxy $transactions){
+            $transactions->get('', [TransactionController::class, 'index']);
+            $transactions->get('/load', [TransactionController::class, 'load']);
+            $transactions->post('', [TransactionController::class, 'store']);
+            $transactions->post('/import', [TransactionImporterController::class, 'import']);
+            $transactions->delete('/{transaction}', [TransactionController::class, 'delete']);
+            $transactions->get('/{transaction}', [TransactionController::class, 'get']);
+            $transactions->post('/{transaction}', [TransactionController::class, 'update']);
+            $transactions->post('/{transaction}/receipts', [ReceiptController::class, 'store']);
+            $transactions->get('/{transaction}/receipts/{receipt}', [ReceiptController::class, 'download']);
+            $transactions->delete('/{transaction}/receipts/{receipt}', [ReceiptController::class, 'delete']);
+            $transactions->post('/{transaction}/review', [TransactionController::class, 'toggleReviewed']);
+        });
+    })->add(VerifyEmailMiddleware::class)->add(AuthMiddleware::class);
+
 
     $app->group('', function (RouteCollectorProxy $guest){
         $guest->get('/login', [AuthController::class, 'loginView']);
@@ -23,27 +53,11 @@ return function (App $app) {
         $guest->post('/register', [AuthController::class, 'register']);
     })->add(GuestMiddleware::class);
   
-    $app->post('/logout', [AuthController::class, 'logOut'])->add(AuthMiddleware::class);
-
-    $app->group('/categories', function (RouteCollectorProxy $categories){
-        $categories->get('', [CategoryController::class, 'index']);
-        $categories->get('/load', [CategoryController::class, 'load']);
-        $categories->post('', [CategoryController::class, 'store']);
-        $categories->delete('/{id}', [CategoryController::class, 'delete']);
-        $categories->get('/{id}', [CategoryController::class, 'get']);
-        $categories->post('/{id}', [CategoryController::class, 'update']);
+    $app->group('',function(RouteCollectorProxy $group){
+        $group->post('/logout', [AuthController::class, 'logOut']);
+        $group->get('/verify',[VerifyController::class,'index']);
+        $group->post('/verify',[VerifyController::class,'resend']);
+        $group->get('/verify/{id}/{hash}',[VerifyController::class,'verify'])->setName('verify')->add(ValidateSignatureMiddleware::class);
     })->add(AuthMiddleware::class);
 
-    $app->group('/transactions', function (RouteCollectorProxy $transactions){
-        $transactions->get('', [TransactionController::class, 'index']);
-        $transactions->get('/load', [TransactionController::class, 'load']);
-        $transactions->post('', [TransactionController::class, 'store']);
-        $transactions->delete('/{id:[0-9]+}', [TransactionController::class, 'delete']);
-        $transactions->get('/{id:[0-9]+}', [TransactionController::class, 'get']);
-        $transactions->post('/{id:[0-9]+}', [TransactionController::class, 'update']);
-        $transactions->post('/{id:[0-9]+}/receipts', [ReceiptController::class, 'store']);
-        $transactions->get('/{transactionId:[0-9]+}/receipts/{id:[0-9]+}', [ReceiptController::class, 'download']);
-        $transactions->delete('/{transactionId:[0-9]+}/receipts/{id:[0-9]+}', [ReceiptController::class, 'delete']);
-        $transactions->post('/import', [TransactionImporterController::class, 'import']);
-    })->add(AuthMiddleware::class);
 };

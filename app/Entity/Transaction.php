@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Entity;
 
+use App\Contracts\OwnableInterface;
 use App\Entity\Traits\HasTimeStamps;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -19,12 +20,15 @@ use Doctrine\ORM\Mapping\Table;
 
 #[Entity, Table('transactions')]
 #[HasLifecycleCallbacks]
-class Transaction
+class Transaction implements OwnableInterface
 {
     use HasTimeStamps;
 
     #[Id, Column(options: ['unsigned' => true]), GeneratedValue]
     private int $id;
+
+    #[Column(name: 'was_reviewed', options: ['default'=> 0])]
+    private bool $wasReviewed;
 
     #[Column]
     private string $description;
@@ -41,12 +45,13 @@ class Transaction
     #[ManyToOne(inversedBy: 'transactions')]
     private ?Category $category;
 
-    #[OneToMany(mappedBy: 'transaction', targetEntity: Receipt::class)]
+    #[OneToMany(mappedBy: 'transaction', targetEntity: Receipt::class, cascade: ['remove'])]
     private Collection $receipts;
 
     public function __construct()
     {
         $this->receipts = new ArrayCollection();
+        $this->wasReviewed = false;
     }
 
     public function getId(): int
@@ -97,7 +102,7 @@ class Transaction
 
     public function setUser(User $user): Transaction
     {
-        $user->addTransaction($this);
+       // $user->addTransaction($this);
         $this->user = $user;
 
         return $this;
@@ -110,7 +115,7 @@ class Transaction
 
     public function setCategory(?Category $category): Transaction
     {
-        $category?->addTransaction($this);
+        //$category?->addTransaction($this);
 
         $this->category = $category;
 
@@ -128,4 +133,13 @@ class Transaction
 
         return $this;
     }
+
+	public function wasReviewed(): bool {
+		return $this->wasReviewed;
+	}
+
+	public function setReviewed(bool $wasReviewed): self {
+		$this->wasReviewed = $wasReviewed;
+		return $this;
+	}
 }

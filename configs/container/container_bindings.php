@@ -39,9 +39,20 @@ use Doctrine\DBAL\DriverManager;
 use Clockwork\Clockwork;
 use Clockwork\Storage\FileStorage;
 use Clockwork\DataSource\DoctrineDataSource;
+use Doctrine\ORM\EntityManagerInterface;
+use App\Contracts\EntityManagerServiceInterface;
+use App\Services\EntityManagerService;
+use App\RouteEntityBindingStrategy;
+use App\Filter\UserFilter;
+use App\Entity\Transaction;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mailer\Transport;
+use Symfony\Bridge\Twig\Mime\BodyRenderer;
+use Symfony\Component\Mime\BodyRendererInterface;
+use Slim\Interfaces\RouteParserInterface;
 
 return [
-    App::class                          => function (ContainerInterface $container) {
+    App::class                      => function (ContainerInterface $container) {
         AppFactory::setContainer($container);
 
         $addMiddlewares = require CONFIG_PATH . '/middleware.php';
@@ -49,23 +60,28 @@ return [
 
         $app = AppFactory::create();
 
+        $app->getRouteCollector()->setDefaultInvocationStrategy(new RouteEntityBindingStrategy($container->get(EntityManagerServiceInterface::class), $app->getResponseFactory()));
+
         $router($app);
         $addMiddlewares($app);
 
         return $app;
     },
-    Config::class                       => create(Config::class)->constructor(require CONFIG_PATH . '/app.php'),
-    EntityManager::class                => function(Config $config) { 
+    Config::class                   => create(Config::class)->constructor(require CONFIG_PATH . '/app.php'),
+    EntityManagerInterface::class   => function(Config $config) { 
         $ormConfig = ORMSetup::createAttributeMetadataConfiguration(
             $config->get('doctrine.entity_dir'),
             $config->get('doctrine.dev_mode')
         );
+
+        $ormConfig->addFilter("user", UserFilter::class);
+
         return new EntityManager(
             DriverManager::getConnection($config->get('doctrine.connection'), $ormConfig),
             $ormConfig
         );
     },
-    Twig::class                         => function (Config $config, ContainerInterface $container) {
+    Twig::class                      => function (Config $config, ContainerInterface $container) {
         $twig = Twig::create(VIEW_PATH, [
             'cache'       => STORAGE_PATH . '/cache/templates',
             'auto_reload' => AppEnvironment::isDevelopment($config->get('app_environment')),
@@ -100,18 +116,27 @@ return [
             )
         ),
     RequestValidatorFactoryInterface::class => fn(ContainerInterface $container) => $container->get(RequestValidatorFactory::class),
-    'csrf' => fn(ResponseFactoryInterface $responseFactoryInterface, Csrf $csrf) => new Guard($responseFactoryInterface, persistentTokenMode: true, failureHandler: $csrf->failureHandler()),
+    'csrf'  => fn(ResponseFactoryInterface $responseFactoryInterface, Csrf $csrf) => new Guard($responseFactoryInterface, persistentTokenMode: true, failureHandler: $csrf->failureHandler()),
     Filesystem::class => function(Config $config){
         $adapter = match($config->get('storage.driver')) {
             StorageDriver::Local => new League\Flysystem\Local\LocalFilesystemAdapter(STORAGE_PATH),
         };
         return new League\Flysystem\Filesystem($adapter);
     },
-    Clockwork::class => function(EntityManager $entityManager){
+    Clockwork::class                        => function(EntityManagerInterface $entityManager){
         $clockwork = new Clockwork();
         $clockwork->storage(new FileStorage(STORAGE_PATH . '/clockwork'));
         $clockwork->addDataSource(new DoctrineDataSource($entityManager));
 
         return $clockwork;
-    }
+    },
+    EntityManagerServiceInterface::class    => fn(EntityManagerInterface $entityManager) => new EntityManagerService($entityManager),
+    \Symfony\Component\Mailer\MailerInterface::class => function(Config $config){
+        $transport = Transport::fromDsn($config->get('mailer.dsn'));
+
+        return new Mailer($transport);
+    },
+
+    BodyRendererInterface::class => fn(Twig $twig) => new BodyRenderer($twig->getEnvironment()),
+    RouteParserInterface::class =>fn(App $app)  =>$app->getRouteCollector()->getRouteParser(),
 ];

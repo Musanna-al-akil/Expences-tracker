@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Controllers;
 
+use App\Contracts\EntityManagerServiceInterface;
 use App\Contracts\RequestValidatorFactoryInterface;
 use App\Entity\Category;
 use App\RequestValidators\CreateCategoryRequestValidator;
@@ -22,11 +23,12 @@ class CategoryController
         private readonly RequestValidatorFactoryInterface $requestValidatorFactory,
         private readonly CategoryService $categoryService,
         private readonly responseFormatter $responseFormatter,
-        private readonly RequestService $requestService
+        private readonly RequestService $requestService,
+        private readonly EntityManagerServiceInterface $entityManagerService
     ) {
     } 
 
-    public function index(Request $request, Response $response): Response
+    public function index(Response $response): Response
     {
         return $this->twig->render($response, 'categories/index.twig');
     }
@@ -37,42 +39,32 @@ class CategoryController
         $data = $this->requestValidatorFactory->make(CreateCategoryRequestValidator::class)->validate($request->getParsedBody());
         
         //create a new category in db
-        $this->categoryService->create($data['name'], $request->getAttribute('user'));
+        $category = $this->categoryService->create($data['name'], $request->getAttribute('user'));
+        $this->entityManagerService->sync($category);
 
         return $response->withHeader('Location', '/categories')->withStatus(302);
     }
 
-    public function delete(Request $request, Response $response, array $args): Response
+    public function delete(Response $response, Category $category): Response
     {
-        $this->categoryService->delete((int) $args['id']);
+        $this->entityManagerService->delete($category, true);
+    
         return $response;
     }
 
-    public function get(Request $request, Response $response, array $args): Response
+    public function get(Response $response, Category $category): Response
     {
-        $category = $this->categoryService->getById((int) $args['id']);
-
-        if(! $category){
-            return $response->withStatus(404);
-        }
-
         $data = ['id' =>$category->getId(), 'name' => $category->getName()];
 
         return $this->responseFormatter->asJson($response,$data);
     }
 
-    public function update(Request $request, Response $response, array $args): Response
+    public function update(Request $request, Response $response, Category $category): Response
     {
         //validate data
-        $data = $this->requestValidatorFactory->make(UpdateCategoryRequestValidator::class)->validate($args + $request->getParsedBody());
+        $data = $this->requestValidatorFactory->make(UpdateCategoryRequestValidator::class)->validate($request->getParsedBody());
 
-        $category = $this->categoryService->getById((int) $data['id']);
-
-        if(! $category){
-            return $response->withStatus(404);
-        }
-
-        $this->categoryService->update($category, $data['name']);
+        $this->entityManagerService->sync($this->categoryService->update($category, $data['name']));
 
         return $response;
     }

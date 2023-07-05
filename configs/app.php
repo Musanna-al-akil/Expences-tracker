@@ -9,8 +9,10 @@ $appEnv = $_ENV['APP_ENV'] ?? AppEnvironment::Production->value;
 
 $appSnakeName = strtolower((str_replace(' ', '-', $_ENV['APP_NAME'])));
 return [
+    'app_key'               => $_ENV['APP_KEY'],
     'app_name'              => $_ENV['APP_NAME'],
     'app_version'           => $_ENV['APP_VERSION'] ?? '1.0',
+    'app_url'               => $_ENV['APP_URL'],
     'app_environment'       => $appEnv,
     'display_error_details' => (bool) ($_ENV['APP_DEBUG'] ?? 0),
     'log_errors'            => true,
@@ -22,7 +24,7 @@ return [
         'connection' => [
             'driver'   => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
             'host'     => $_ENV['DB_HOST'] ?? 'localhost',
-            'port'     => $_ENV['DB_PORT'] ?? 3306,
+            'port'     => $_ENV['DB_PORT'] ?? 3307,
             'dbname'   => $_ENV['DB_NAME'],
             'user'     => $_ENV['DB_USER'],
             'password' => $_ENV['DB_PASS'],
@@ -37,5 +39,9 @@ return [
     ],
     'storage' => [
         'driver'    => StorageDriver::Local,
+    ],
+    'mailer'    => [
+        'dsn' => $_ENV['MAILER_DSN'],
+        'from'=> $_ENV['MAILER_FROM']
     ]
 ];
