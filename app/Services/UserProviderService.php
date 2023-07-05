@@ -9,6 +9,7 @@ use App\Contracts\UserInterface;
 use App\Contracts\UserProviderServiceInterface;
 use App\DataObjects\RegisterUserData;
 use App\Entity\User;
+use SebastianBergmann\Type\VoidType;
 
 class UserProviderService implements UserProviderServiceInterface
 {
@@ -37,5 +38,12 @@ class UserProviderService implements UserProviderServiceInterface
         $this->entityManager->sync($user);
 
         return $user;
+    }
+
+    public function verifyUser(UserInterface $user):void
+    {
+        $user->setVerifiedAt(new \DateTime());
+        
+        $this->entityManager->sync($user);
     }
 }

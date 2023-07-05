@@ -44,6 +44,12 @@ use App\Contracts\EntityManagerServiceInterface;
 use App\Services\EntityManagerService;
 use App\RouteEntityBindingStrategy;
 use App\Filter\UserFilter;
+use App\Entity\Transaction;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mailer\Transport;
+use Symfony\Bridge\Twig\Mime\BodyRenderer;
+use Symfony\Component\Mime\BodyRendererInterface;
+use Slim\Interfaces\RouteParserInterface;
 
 return [
     App::class                      => function (ContainerInterface $container) {
@@ -125,4 +131,12 @@ return [
         return $clockwork;
     },
     EntityManagerServiceInterface::class    => fn(EntityManagerInterface $entityManager) => new EntityManagerService($entityManager),
+    \Symfony\Component\Mailer\MailerInterface::class => function(Config $config){
+        $transport = Transport::fromDsn($config->get('mailer.dsn'));
+
+        return new Mailer($transport);
+    },
+
+    BodyRendererInterface::class => fn(Twig $twig) => new BodyRenderer($twig->getEnvironment()),
+    RouteParserInterface::class =>fn(App $app)  =>$app->getRouteCollector()->getRouteParser(),
 ];

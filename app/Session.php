@@ -33,7 +33,7 @@ class Session implements SessionInterface
             session_name($this->options->name);
         }
 
-        if(!session_start()){
+        if(! session_start()){
             throw new SessionException('Unable to start the session');
         };
     }

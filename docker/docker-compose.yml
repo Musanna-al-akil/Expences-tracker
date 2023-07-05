@@ -4,7 +4,7 @@ name: "expennies"
 services:
   app:
     build:
-      context: ""
+      context: "."
       dockerfile: Dockerfile
       args:
         USER_ID: '${WWWUSER:-1000}'
@@ -22,7 +22,7 @@ services:
       - "9003:9003"
     
   nginx:
-    image: nginx:1.23.4-alpine
+    image: nginx:1.25.1-alpine
     container_name: expennies-nginx
     restart: always
     ports:
@@ -30,9 +30,10 @@ services:
     volumes:
       - ../:/var/www
       - ./nginx:/etc/nginx/conf.d
+
   db:
     container_name: expennies-db
-    image: mysql:8.0.32
+    image: mysql:8.0.33
     volumes:
       - ./storage/mysql:/var/lib/mysql
     restart: always
@@ -40,3 +41,13 @@ services:
       MYSQL_ROOT_PASSWORD: root
     ports:
       - "3307:3306"
+      
+  mailhog:
+    container_name: expennies-mailhog
+    image: mailhog/mailhog
+    restart: always
+    logging:
+      driver: "none"
+    ports:
+      - "8026:8025"
+      - "1025:1025"
