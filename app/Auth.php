@@ -9,13 +9,22 @@ use App\Contracts\SessionInterface;
 use App\Contracts\UserInterface;
 use App\Contracts\UserProviderServiceInterface;
 use App\DataObjects\RegisterUserData;
+use App\Enum\AuthAttemptStatus;
 use App\Mail\SignupEmail;
+use App\Mail\TwoFactorAuthEmail;
+use App\Services\UserLoginCodeService;
 
 class Auth implements AuthInterface
 {
     private ?UserInterface $user = null;
 
-    public function __construct(private readonly UserProviderServiceInterface $userProvider, private readonly SessionInterface $session, private readonly SignupEmail $signupEmail)
+    public function __construct(
+     private readonly UserProviderServiceInterface $userProvider,
+     private readonly SessionInterface $session,
+     private readonly SignupEmail $signupEmail,
+     private readonly TwoFactorAuthEmail $twoFactorAuthEmail,
+     private readonly UserLoginCodeService $userLoginCodeService
+     )
     {
     }
 
@@ -39,18 +48,24 @@ class Auth implements AuthInterface
         return $this->user;
     }
 
-    public function attemptLogin(array $credentials): bool
+    public function attemptLogin(array $credentials): AuthAttemptStatus
     {
         $user = $this->userProvider->getByCredentials($credentials);
 
         if (! $user || ! $this->checkCredentials($user, $credentials)) {
-            return false;
+            return AuthAttemptStatus::FAILED;
         }
-        $this->login($user);
 
-        return true;
+        if ($user->hasTwoFactorAuthEnabled()) {
+            $this->startLoginWith2FA($user);
+
+            return AuthAttemptStatus::TWO_FACTOR_AUTH;
+        }
+
+        $this->logIn($user);
+
+        return AuthAttemptStatus::SUCCESS;
     }
-
     public function checkCredentials(UserInterface $user, array $credentials): bool
     {
         return password_verify($credentials['password'], $user->getPassword());
@@ -81,5 +96,13 @@ class Auth implements AuthInterface
         $this->session->put('user', $user->getId());
 
         $this->user = $user;
+    }
+
+    public function startLoginWith2FA(UserInterface $user)
+    {
+        $this->session->regenerate();
+        $this->session->put('2fa',$user->getId());
+
+        $this->twoFactorAuthEmail->send($this->userLoginCodeService->generate($user));
     }
 }
