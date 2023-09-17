@@ -1,5 +1,4 @@
-version: '4.17'
-name: "expennies"
+version: '3.8'
 
 services:
   app:

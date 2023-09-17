@@ -6,7 +6,6 @@ namespace App\RequestValidators;
 
 use App\Contracts\RequestValidatorInterface;
 use App\Exception\ValidationException;
-use finfo;
 use League\MimeTypeDetection\FinfoMimeTypeDetector;
 use Psr\Http\Message\UploadedFileInterface;
 

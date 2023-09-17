@@ -24,7 +24,7 @@ return [
         'connection' => [
             'driver'   => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
             'host'     => $_ENV['DB_HOST'] ?? 'localhost',
-            'port'     => $_ENV['DB_PORT'] ?? 3307,
+            'port'     => $_ENV['DB_PORT'] ?? 3306,
             'dbname'   => $_ENV['DB_NAME'],
             'user'     => $_ENV['DB_USER'],
             'password' => $_ENV['DB_PASS'],
@@ -32,10 +32,10 @@ return [
     ],
     'session' => [
         'name'      => $appSnakeName . '_session',
+        'flash_name'=> $appSnakeName . '_flash',
         'secure'    => true,
         'httpOnly'  => true,
-        'samesite'  => 'lax',
-        'flash'     => 'flash'
+        'samesite'  => 'lax'
     ],
     'storage' => [
         'driver'    => StorageDriver::Local,

@@ -9,11 +9,11 @@ use App\Contracts\UserInterface;
 use App\Contracts\UserProviderServiceInterface;
 use App\DataObjects\RegisterUserData;
 use App\Entity\User;
-use SebastianBergmann\Type\VoidType;
 
 class UserProviderService implements UserProviderServiceInterface
 {
-    public function __construct(private readonly EntityManagerServiceInterface $entityManager)
+    public function __construct(private readonly EntityManagerServiceInterface $entityManager,
+    private readonly hashService $hashService)
     {
     }
 
@@ -33,7 +33,7 @@ class UserProviderService implements UserProviderServiceInterface
 
         $user->setName($data->name);
         $user->setEmail($data->email);
-        $user->setPassword(password_hash($data->password, PASSWORD_BCRYPT, ['cost' => 12]));
+        $user->setPassword($this->hashService->hasPassword($data->password));
 
         $this->entityManager->sync($user);
 
