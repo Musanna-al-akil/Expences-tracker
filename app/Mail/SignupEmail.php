@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace App\Mail;
+
 use App\Config;
 use App\Entity\User;
 use App\SignedUrl;
@@ -18,7 +19,6 @@ class SignupEmail
         private readonly BodyRendererInterface $renderer,
         private readonly SignedUrl $signedUrl)
     {
-
     }
 
     public function send(User $user):Void

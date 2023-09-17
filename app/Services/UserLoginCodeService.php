@@ -1,18 +1,18 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
+
 use App\Contracts\EntityManagerServiceInterface;
 use App\Entity\User;
 use App\Entity\UserLoginCode;
-use SebastianBergmann\Type\VoidType;
 
 class UserLoginCodeService
 {
     public function __construct(
         private readonly EntityManagerServiceInterface $entityManangerService
-    )
-    {
+    ){
     }
 
     public function generate(User $user): UserLoginCode

@@ -2,8 +2,6 @@
 
 namespace App\DataObjects;
 
-use App\Enum\SameSite;
-
 class DataTableQueryParams
 {
     public function __construct(
@@ -13,7 +11,6 @@ class DataTableQueryParams
         public readonly string $orderDir,
         public readonly string $search,
         public readonly int $draw,
-
     ){ 
     }
 }
