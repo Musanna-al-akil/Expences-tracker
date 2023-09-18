@@ -50,6 +50,10 @@ use Symfony\Component\Mailer\Transport;
 use Symfony\Bridge\Twig\Mime\BodyRenderer;
 use Symfony\Component\Mime\BodyRendererInterface;
 use Slim\Interfaces\RouteParserInterface;
+use Psr\SimpleCache\CacheInterface;
+use App\RedisCache;
+use Symfony\Component\Cache\Adapter\RedisAdapter;
+use Symfony\Component\Cache\Psr16Cache;
 
 return [
     App::class                      => function (ContainerInterface $container) {
@@ -139,4 +143,18 @@ return [
 
     BodyRendererInterface::class => fn(Twig $twig) => new BodyRenderer($twig->getEnvironment()),
     RouteParserInterface::class =>fn(App $app)  =>$app->getRouteCollector()->getRouteParser(),
+
+    CacheInterface::class => function(Config $config) {
+        $redis = new \Redis();
+        $config = $config->get('redis');
+
+        $redis->connect($config['host'], (int) $config['port']);
+        $redis->auth($config['password']);
+
+        $adapter = new RedisAdapter($redis);
+
+        return new Psr16Cache($adapter);
+
+        //return new RedisCache($redis);
+    }
 ];
