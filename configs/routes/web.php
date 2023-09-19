@@ -17,6 +17,7 @@ use App\Controllers\VerifyController;
 use App\Middleware\ValidateSignatureMiddleware;
 use App\Controllers\ProfileController;
 use App\Controllers\PasswordResetController;
+use App\Middleware\RateLimitMiddleware;
 
 return function (App $app) {
 
@@ -56,7 +57,7 @@ return function (App $app) {
     $app->group('', function (RouteCollectorProxy $guest){
         $guest->get('/login', [AuthController::class, 'loginView']);
         $guest->get('/register', [AuthController::class, 'registerView']);
-        $guest->post('/login', [AuthController::class, 'logIn']);
+        $guest->post('/login', [AuthController::class, 'logIn'])->add(RateLimitMiddleware::class);
         $guest->post('/register', [AuthController::class, 'register']);
         $guest->post('/login/two-factor', [AuthController::class, 'twoFactorLogin']);
         $guest->get('/forgot-password', [PasswordResetController::class, 'showForgotPasswordForm']);
