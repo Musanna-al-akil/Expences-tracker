@@ -41,7 +41,8 @@
         "league/mime-type-detection": "^1.11",
         "itsgoingd/clockwork": "^5.1",
         "symfony/mailer": "^6.3",
-        "psr/simple-cache": "^3.0"
+        "psr/simple-cache": "^3.0",
+        "symfony/rate-limiter": "^6.3"
         
     },
     "require-dev": {
