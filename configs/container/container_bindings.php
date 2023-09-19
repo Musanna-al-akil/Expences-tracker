@@ -50,6 +50,12 @@ use Symfony\Component\Mailer\Transport;
 use Symfony\Bridge\Twig\Mime\BodyRenderer;
 use Symfony\Component\Mime\BodyRendererInterface;
 use Slim\Interfaces\RouteParserInterface;
+use Psr\SimpleCache\CacheInterface;
+use App\RedisCache;
+use Symfony\Component\Cache\Adapter\RedisAdapter;
+use Symfony\Component\Cache\Psr16Cache;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\Storage\CacheStorage;
 
 return [
     App::class                      => function (ContainerInterface $container) {
@@ -139,4 +145,27 @@ return [
 
     BodyRendererInterface::class => fn(Twig $twig) => new BodyRenderer($twig->getEnvironment()),
     RouteParserInterface::class =>fn(App $app)  =>$app->getRouteCollector()->getRouteParser(),
+
+    CacheInterface::class => fn(RedisAdapter $redisAdapter) => new Psr16Cache($redisAdapter), //return new RedisCache($redis),
+
+    RedisAdapter::class =>function(Config $config){
+        $redis = new \Redis();
+        $config = $config->get('redis');
+
+        $redis->connect($config['host'], (int) $config['port']);
+        $redis->auth($config['password']);
+
+        return new RedisAdapter($redis);
+    },
+
+    RateLimiterFactory::class => function(RedisAdapter $redisAdapter) {
+        $storage = new CacheStorage($redisAdapter);
+
+        return new RateLimiterFactory([
+            'id' => 'default', 
+            'policy' => 'fixed_window', 
+            'interval' => '1 minute', 
+            'limit' => 3
+        ], $storage);
+    }
 ];
